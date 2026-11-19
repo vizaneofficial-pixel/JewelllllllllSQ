@@ -1,0 +1,6 @@
+{
+  "name": "StallIQ Pro",
+  "description": "AI Jewellery Stall Command Center for Exhibition Mix Optimization, Total Stock CFO Analytics & Merchandising Strategy",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

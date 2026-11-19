@@ -1,0 +1,388 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default-Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Hardened Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function hasParentUser(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId)) &&
+        get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+    }
+
+    function hasParentWorkspace(userId, workspaceId) {
+      return exists(/databases/$(database)/documents/users/$(userId)/workspaces/$(workspaceId)) &&
+        get(/databases/$(database)/documents/users/$(userId)/workspaces/$(workspaceId)).data.ownerId == request.auth.uid;
+    }
+
+    // Entity Validation Blueprints
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll([
+        'uid', 'email', 'displayName', 'photoURL',
+        'businessName', 'preferredScale', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'uid', 'email', 'displayName', 'preferredName', 'photoURL',
+        'businessName', 'preferredScale', 'createdAt', 'updatedAt'
+      ]) &&
+      data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 &&
+      data.uid == userId && data.uid == request.auth.uid &&
+      data.email is string && data.email.size() <= 254 &&
+      data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120 &&
+      (!('preferredName' in data) || (data.preferredName is string && data.preferredName.size() <= 80)) &&
+      data.photoURL is string && data.photoURL.size() <= 512 &&
+      data.businessName is string && data.businessName.size() <= 120 &&
+      data.preferredScale is string && data.preferredScale.size() <= 60 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidStallWorkspace(data, userId) {
+      return data.keys().hasAll([
+        'ownerId', 'eventName', 'expectedFootfall', 'budgetCap', 'minProfitFloor',
+        'stallFee', 'maxPerCategory', 'minColoursRule', 'globalSellThrough',
+        'activeTab', 'rules', 'categories', 'stallStock',
+        'selectedComboId', 'customQuantities', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'ownerId', 'eventName', 'eventLocation', 'eventDate', 'expectedFootfall', 'budgetCap', 'minProfitFloor',
+        'stallFee', 'maxPerCategory', 'minColoursRule', 'globalSellThrough',
+        'activeTab', 'rules', 'categories', 'stallStock',
+        'selectedComboId', 'customQuantities', 'categoryGroups', 'activeGroupId',
+        'stallSetup', 'marketResearch', 'projectMeta', 'savedPlans', 'purchaseProgress',
+        'actualSales', 'conversations', 'activeConversationId', 'orderPreparedAtMs',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+      data.ownerId == userId && data.ownerId == request.auth.uid &&
+      data.eventName is string && data.eventName.size() >= 1 && data.eventName.size() <= 120 &&
+      (!('eventLocation' in data) || (data.eventLocation is string && data.eventLocation.size() <= 120)) &&
+      (!('eventDate' in data) || (data.eventDate is string && data.eventDate.size() <= 40)) &&
+      data.expectedFootfall is number && data.expectedFootfall >= 0 && data.expectedFootfall <= 10000000 &&
+      data.budgetCap is number && data.budgetCap >= 0 && data.budgetCap <= 100000000 &&
+      data.minProfitFloor is number && data.minProfitFloor >= 0 && data.minProfitFloor <= 100000000 &&
+      data.stallFee is number && data.stallFee >= 0 && data.stallFee <= 100000000 &&
+      data.maxPerCategory is number && data.maxPerCategory >= 1 && data.maxPerCategory <= 500 &&
+      data.minColoursRule is number && data.minColoursRule >= 0 && data.minColoursRule <= 25 &&
+      data.globalSellThrough is number && data.globalSellThrough >= 10 && data.globalSellThrough <= 100 &&
+      data.activeTab is string && data.activeTab.size() <= 20 &&
+      data.activeTab in ['optimizer', 'calculator', 'strategies', 'overview', 'sell', 'research'] &&
+      data.rules is map &&
+      data.rules.keys().hasAll(['allAtLeastOne', 'evenDistribution', 'beautyFirst', 'maxProfitFocus', 'safe90Mode']) &&
+      data.rules.keys().hasOnly(['allAtLeastOne', 'evenDistribution', 'beautyFirst', 'maxProfitFocus', 'safe90Mode']) &&
+      data.rules.allAtLeastOne is bool &&
+      data.rules.evenDistribution is bool &&
+      data.rules.beautyFirst is bool &&
+      data.rules.maxProfitFocus is bool &&
+      data.rules.safe90Mode is bool &&
+      data.categories is list && data.categories.size() <= 25 &&
+      (data.categories.size() == 0 || data.categories[0] is map) &&
+      data.stallStock is list && data.stallStock.size() <= 60 &&
+      (data.stallStock.size() == 0 || data.stallStock[0] is map) &&
+      (data.selectedComboId == null || (data.selectedComboId is string && data.selectedComboId.size() <= 128)) &&
+      (data.customQuantities == null || (data.customQuantities is list && data.customQuantities.size() <= 25 && (data.customQuantities.size() == 0 || data.customQuantities[0] is number))) &&
+      (!('activeGroupId' in data) || (data.activeGroupId is string && data.activeGroupId.size() <= 128)) &&
+      (!('categoryGroups' in data) || (data.categoryGroups is list && data.categoryGroups.size() <= 20 && (data.categoryGroups.size() == 0 || data.categoryGroups[0] is map))) &&
+      (!('stallSetup' in data) || (data.stallSetup is map)) &&
+      (!('marketResearch' in data) || (data.marketResearch is list && data.marketResearch.size() <= 12)) &&
+      (!('projectMeta' in data) || (data.projectMeta is map)) &&
+      (!('savedPlans' in data) || (data.savedPlans is list && data.savedPlans.size() <= 15)) &&
+      (!('purchaseProgress' in data) || (data.purchaseProgress is map)) &&
+      (!('actualSales' in data) || (data.actualSales is list && data.actualSales.size() <= 200)) &&
+      (!('conversations' in data) || (data.conversations is list && data.conversations.size() <= 12)) &&
+      (!('activeConversationId' in data) || data.activeConversationId == null || (data.activeConversationId is string && data.activeConversationId.size() <= 64)) &&
+      (!('orderPreparedAtMs' in data) || data.orderPreparedAtMs == null || data.orderPreparedAtMs is number) &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidAiMemoryEntry(data, userId) {
+      return data.keys().hasAll(['ownerId', 'fact', 'category', 'source', 'createdAt', 'updatedAt']) &&
+      data.keys().hasOnly(['ownerId', 'fact', 'category', 'source', 'createdAt', 'updatedAt']) &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+      data.ownerId == userId && data.ownerId == request.auth.uid &&
+      data.fact is string && data.fact.size() >= 2 && data.fact.size() <= 500 &&
+      data.category is string && data.category.size() <= 30 &&
+      data.category in ['inventory', 'pricing', 'event', 'preference', 'strategy'] &&
+      data.source is string && data.source.size() <= 20 &&
+      data.source in ['voice', 'command', 'manual'] &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidLiveSaleTransaction(data, userId, workspaceId, transactionId) {
+      return data.keys().hasAll([
+        'id', 'userId', 'projectId', 'sessionId', 'isBasket', 'items',
+        'primaryProductId', 'primaryProductName', 'primaryCategoryName',
+        'totalQuantity', 'originalTotalValue', 'totalDiscount', 'actualTotalRevenue',
+        'totalCogs', 'realizedGrossProfit', 'paymentMethod', 'timestampMs',
+        'status', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'userId', 'projectId', 'sessionId', 'isBasket', 'items',
+        'primaryProductId', 'primaryProductName', 'primaryCategoryName',
+        'totalQuantity', 'originalTotalValue', 'totalDiscount', 'actualTotalRevenue',
+        'totalCogs', 'realizedGrossProfit', 'paymentMethod', 'timestampMs',
+        'status', 'stockConflict', 'stockConflictNote', 'stockConflictResolved',
+        'reversalOfTransactionId', 'reversedByTransactionId',
+        'correctionOfTransactionId', 'correctedByTransactionId',
+        'note', 'deviceId', 'createdAt', 'updatedAt'
+      ]) &&
+      data.id is string && data.id == transactionId &&
+      data.userId is string && data.userId == userId && data.userId == request.auth.uid &&
+      data.projectId is string && data.projectId == workspaceId &&
+      data.sessionId is string && data.sessionId.size() >= 1 && data.sessionId.size() <= 128 &&
+      data.isBasket is bool &&
+      data.items is list && data.items.size() >= 1 && data.items.size() <= 50 &&
+      data.items[0] is map &&
+      data.primaryProductId is string && data.primaryProductId.size() >= 1 && data.primaryProductId.size() <= 128 &&
+      data.primaryProductName is string && data.primaryProductName.size() >= 1 && data.primaryProductName.size() <= 120 &&
+      data.primaryCategoryName is string && data.primaryCategoryName.size() >= 1 && data.primaryCategoryName.size() <= 80 &&
+      data.totalQuantity is number && data.totalQuantity >= 1 && data.totalQuantity <= 100000 &&
+      data.originalTotalValue is number && data.originalTotalValue > 0 && data.originalTotalValue <= 100000000 &&
+      data.totalDiscount is number && data.totalDiscount >= 0 && data.totalDiscount < data.originalTotalValue &&
+      data.actualTotalRevenue is number && data.actualTotalRevenue > 0 && data.actualTotalRevenue <= 100000000 &&
+      data.totalCogs is number && data.totalCogs >= 0 && data.totalCogs <= 100000000 &&
+      data.realizedGrossProfit is number && data.realizedGrossProfit >= -100000000 && data.realizedGrossProfit <= 100000000 &&
+      data.paymentMethod is string && data.paymentMethod in ['cash', 'upi', 'card', 'other', 'unrecorded'] &&
+      data.timestampMs is number && data.timestampMs > 0 &&
+      data.status is string && data.status in ['completed', 'reversed', 'corrected'] &&
+      (!('stockConflict' in data) || data.stockConflict is bool) &&
+      (!('stockConflictNote' in data) || data.stockConflictNote == null || (data.stockConflictNote is string && data.stockConflictNote.size() <= 240)) &&
+      (!('stockConflictResolved' in data) || data.stockConflictResolved is bool) &&
+      (!('reversalOfTransactionId' in data) || data.reversalOfTransactionId == null || (data.reversalOfTransactionId is string && data.reversalOfTransactionId.size() <= 128)) &&
+      (!('reversedByTransactionId' in data) || data.reversedByTransactionId == null || (data.reversedByTransactionId is string && data.reversedByTransactionId.size() <= 128)) &&
+      (!('correctionOfTransactionId' in data) || data.correctionOfTransactionId == null || (data.correctionOfTransactionId is string && data.correctionOfTransactionId.size() <= 128)) &&
+      (!('correctedByTransactionId' in data) || data.correctedByTransactionId == null || (data.correctedByTransactionId is string && data.correctedByTransactionId.size() <= 128)) &&
+      (!('note' in data) || (data.note is string && data.note.size() <= 240)) &&
+      (!('deviceId' in data) || (data.deviceId is string && data.deviceId.size() <= 64)) &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    function isValidLiveSellingSession(data, userId, workspaceId, sessionId) {
+      return data.keys().hasAll([
+        'id', 'userId', 'projectId', 'dateKey', 'label',
+        'status', 'startedAtMs', 'defaultPaymentMethod', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'id', 'userId', 'projectId', 'dateKey', 'label',
+        'status', 'startedAtMs', 'closedAtMs', 'defaultPaymentMethod',
+        'pendingSyncOnClose', 'closedReportSnapshot', 'createdAt', 'updatedAt'
+      ]) &&
+      data.id is string && data.id == sessionId &&
+      data.userId is string && data.userId == userId && data.userId == request.auth.uid &&
+      data.projectId is string && data.projectId == workspaceId &&
+      data.dateKey is string && data.dateKey.size() >= 1 && data.dateKey.size() <= 20 &&
+      data.label is string && data.label.size() >= 1 && data.label.size() <= 80 &&
+      data.status is string && data.status in ['open', 'closed'] &&
+      data.startedAtMs is number && data.startedAtMs > 0 &&
+      (!('closedAtMs' in data) || data.closedAtMs == null || data.closedAtMs is number) &&
+      data.defaultPaymentMethod is string && data.defaultPaymentMethod in ['cash', 'upi', 'card', 'other', 'unrecorded'] &&
+      (!('pendingSyncOnClose' in data) || data.pendingSyncOnClose is bool) &&
+      (!('closedReportSnapshot' in data) || data.closedReportSnapshot == null || data.closedReportSnapshot is map) &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    // Merchant Account Profile (PII strictly owner-isolated)
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && isOwner(userId);
+      allow list: if false;
+
+      allow create: if isVerifiedUser() &&
+        isValidId(userId) &&
+        isOwner(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser() &&
+        isValidId(userId) &&
+        isOwner(userId) &&
+        isValidUserProfile(incoming(), userId) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time && (
+          // Action: Sync Google Auth identity fields
+          incoming().diff(existing()).affectedKeys().hasOnly(['email', 'displayName', 'photoURL', 'updatedAt']) ||
+          // Action: Update merchant business profile & preferred name
+          incoming().diff(existing()).affectedKeys().hasOnly(['preferredName', 'businessName', 'preferredScale', 'updatedAt'])
+        );
+
+      allow delete: if false;
+
+      // Saved Stall Workspaces (Master Gate on parent user doc)
+      match /workspaces/{workspaceId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(workspaceId) && isOwner(userId);
+        allow list: if isSignedIn() && isValidId(userId) && isOwner(userId) && existing().ownerId == request.auth.uid;
+
+        allow create: if isVerifiedUser() &&
+          isValidId(userId) &&
+          isValidId(workspaceId) &&
+          isOwner(userId) &&
+          isValidStallWorkspace(incoming(), userId) &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          hasParentUser(userId);
+
+        allow update: if isVerifiedUser() &&
+          isValidId(userId) &&
+          isValidId(workspaceId) &&
+          isOwner(userId) &&
+          isValidStallWorkspace(incoming(), userId) &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'eventName', 'eventLocation', 'eventDate', 'expectedFootfall', 'budgetCap', 'minProfitFloor',
+            'stallFee', 'maxPerCategory', 'minColoursRule', 'globalSellThrough',
+            'activeTab', 'rules', 'categories', 'stallStock',
+            'selectedComboId', 'customQuantities', 'categoryGroups', 'activeGroupId',
+            'stallSetup', 'marketResearch', 'projectMeta', 'savedPlans', 'purchaseProgress',
+            'actualSales', 'conversations', 'activeConversationId', 'orderPreparedAtMs', 'updatedAt'
+          ]) &&
+          hasParentUser(userId);
+
+        allow delete: if isVerifiedUser() &&
+          isValidId(userId) &&
+          isValidId(workspaceId) &&
+          isOwner(userId) &&
+          hasParentUser(userId);
+
+        // Live Selling Transactions (Audit-preserved; never silently deleted)
+        match /liveTransactions/{transactionId} {
+          allow get: if isSignedIn() && isValidId(userId) && isValidId(workspaceId) && isValidId(transactionId) && isOwner(userId);
+          allow list: if isSignedIn() && isValidId(userId) && isValidId(workspaceId) && isOwner(userId) && existing().userId == request.auth.uid;
+
+          allow create: if isVerifiedUser() &&
+            isValidId(userId) &&
+            isValidId(workspaceId) &&
+            isValidId(transactionId) &&
+            isOwner(userId) &&
+            isValidLiveSaleTransaction(incoming(), userId, workspaceId, transactionId) &&
+            incoming().createdAt == request.time &&
+            incoming().updatedAt == request.time &&
+            hasParentWorkspace(userId, workspaceId);
+
+          allow update: if isVerifiedUser() &&
+            isValidId(userId) &&
+            isValidId(workspaceId) &&
+            isValidId(transactionId) &&
+            isOwner(userId) &&
+            isValidLiveSaleTransaction(incoming(), userId, workspaceId, transactionId) &&
+            incoming().id == existing().id &&
+            incoming().userId == existing().userId &&
+            incoming().projectId == existing().projectId &&
+            incoming().sessionId == existing().sessionId &&
+            incoming().createdAt == existing().createdAt &&
+            incoming().updatedAt == request.time &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'reversedByTransactionId', 'correctedByTransactionId',
+              'stockConflict', 'stockConflictNote', 'stockConflictResolved',
+              'note', 'updatedAt'
+            ]) &&
+            hasParentWorkspace(userId, workspaceId);
+
+          allow delete: if false;
+        }
+
+        // Daily Live Selling Sessions
+        match /liveSessions/{sessionId} {
+          allow get: if isSignedIn() && isValidId(userId) && isValidId(workspaceId) && isValidId(sessionId) && isOwner(userId);
+          allow list: if isSignedIn() && isValidId(userId) && isValidId(workspaceId) && isOwner(userId) && existing().userId == request.auth.uid;
+
+          allow create: if isVerifiedUser() &&
+            isValidId(userId) &&
+            isValidId(workspaceId) &&
+            isValidId(sessionId) &&
+            isOwner(userId) &&
+            isValidLiveSellingSession(incoming(), userId, workspaceId, sessionId) &&
+            incoming().createdAt == request.time &&
+            incoming().updatedAt == request.time &&
+            hasParentWorkspace(userId, workspaceId);
+
+          allow update: if isVerifiedUser() &&
+            isValidId(userId) &&
+            isValidId(workspaceId) &&
+            isValidId(sessionId) &&
+            isOwner(userId) &&
+            isValidLiveSellingSession(incoming(), userId, workspaceId, sessionId) &&
+            incoming().id == existing().id &&
+            incoming().userId == existing().userId &&
+            incoming().projectId == existing().projectId &&
+            incoming().startedAtMs == existing().startedAtMs &&
+            incoming().createdAt == existing().createdAt &&
+            incoming().updatedAt == request.time &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'status', 'closedAtMs', 'defaultPaymentMethod',
+              'pendingSyncOnClose', 'closedReportSnapshot', 'updatedAt'
+            ]) &&
+            hasParentWorkspace(userId, workspaceId);
+
+          allow delete: if false;
+        }
+      }
+
+      // Account-Scoped AI Memory Entries (Master Gate on parent user doc)
+      match /aiMemories/{memoryId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(memoryId) && isOwner(userId);
+        allow list: if isSignedIn() && isValidId(userId) && isOwner(userId) && existing().ownerId == request.auth.uid;
+
+        allow create: if isVerifiedUser() &&
+          isValidId(userId) &&
+          isValidId(memoryId) &&
+          isOwner(userId) &&
+          isValidAiMemoryEntry(incoming(), userId) &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time &&
+          hasParentUser(userId);
+
+        allow update: if isVerifiedUser() &&
+          isValidId(userId) &&
+          isValidId(memoryId) &&
+          isOwner(userId) &&
+          isValidAiMemoryEntry(incoming(), userId) &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['fact', 'category', 'updatedAt']) &&
+          hasParentUser(userId);
+
+        allow delete: if isVerifiedUser() &&
+          isValidId(userId) &&
+          isValidId(memoryId) &&
+          isOwner(userId) &&
+          hasParentUser(userId);
+      }
+    }
+  }
+}

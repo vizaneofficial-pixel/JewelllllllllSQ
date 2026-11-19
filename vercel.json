@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/((?!api/|assets/|src/|manifest\\.webmanifest$|sw\\.js$|sw-precache\\.json$|icon\\.svg$|favicon\\.ico$|apple-touch-icon\\.png$|pwa-).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

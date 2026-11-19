@@ -1,0 +1,6 @@
+{
+  "firestore": {
+    "database": "ai-studio-stalliqpro-81b35967-ef4f-4aed-8171-d2b4efd03a99",
+    "rules": "firestore.rules"
+  }
+}

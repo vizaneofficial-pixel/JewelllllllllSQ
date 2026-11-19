@@ -1,0 +1,910 @@
+# STALLIQ — INSTALLABLE WEB APP + COMPLETE LIVE SELLING SYSTEM
+## Final Master Implementation Prompt for Google AI Studio
+
+You are modifying the existing StallIQ application.
+
+Your task is to implement two major improvements:
+
+1. Make StallIQ a properly installable and downloadable web application (PWA).
+2. Build a complete, exceptionally fast and reliable Live Selling system for real-world stall and exhibition sales.
+
+This is an implementation task, not a design proposal.
+
+Inspect the existing project structure, architecture, database, authentication, inventory system, financial calculations, and existing UI before making changes.
+
+Implement everything directly into the existing application.
+
+**IMPORTANT: Preserve the existing desktop interface, visual identity, layouts, navigation, and all currently working features. Do not implement a separate mobile interface or redesign the application.**
+
+The new functionality must integrate naturally into the current StallIQ experience.
+
+---
+
+# PART 1 — INSTALLABLE AND DOWNLOADABLE WEB APPLICATION
+
+Make StallIQ installable as a Progressive Web App (PWA).
+
+The goal is that users can install StallIQ on their phones and computers and launch it from their home screen or application launcher like a normal application.
+
+### 1.1 PWA installation
+
+Implement:
+
+- A valid web app manifest.
+- Appropriate application name and short name: StallIQ.
+- High-quality application icons in the required sizes.
+- Appropriate theme and background colors matching the existing StallIQ design.
+- Standalone display mode.
+- Appropriate application orientation and launch configuration.
+- A working service worker.
+- Installability on supported Android browsers and desktop browsers.
+- An installation prompt or contextual installation instructions where appropriate.
+- Proper application launch behavior after installation.
+
+Do not show repetitive installation popups.
+
+Use the browser's native installation prompt when available. If it is unavailable, provide simple installation instructions.
+
+### 1.2 Offline application shell
+
+StallIQ should still open when the device temporarily loses internet connectivity.
+
+Implement safe offline caching for:
+- Application shell.
+- Required static assets.
+- Fonts and icons where licensing permits.
+- Essential interface resources.
+
+Do not cache sensitive authenticated responses indiscriminately.
+
+Do not expose private user data through shared or public caches.
+
+### 1.3 Offline Live Selling
+
+Live Selling must be capable of operating without an active internet connection after the user has opened and initialized the application.
+
+Sales must be stored locally and synchronized when connectivity returns.
+
+Implement:
+- Persistent local transaction storage.
+- A reliable pending synchronization queue.
+- Unique transaction IDs generated before synchronization.
+- Idempotent synchronization.
+- Duplicate transaction prevention.
+- Retry handling.
+- Clear sync status indicators.
+- Conflict handling for stock updates.
+- Safe recovery after refreshing or reopening the application.
+
+A sale must never disappear because the browser was closed or the network failed.
+
+Do not report a sale as synchronized until the server confirms it.
+
+Show clear states such as:
+- Saved locally.
+- Syncing.
+- Synced.
+- Sync failed — retrying.
+
+### 1.4 Installation and offline testing
+
+Test:
+- Fresh installation.
+- Application launch from the home screen.
+- Refreshing the application.
+- Offline launch after initial setup.
+- Offline sale registration.
+- Reconnection and synchronization.
+- Application update behavior.
+- Data persistence after closing and reopening the application.
+
+Do not claim offline capability if the essential Live Selling functionality still depends on a network request.
+
+---
+
+# PART 2 — LIVE SELLING: CORE CONCEPT
+
+Create a dedicated section named **Live Selling**.
+
+This section is designed for someone physically selling products at an exhibition, jewellery stall, pop-up shop, or retail event.
+
+The user will be interacting with it while customers are continuously approaching the stall.
+
+The interaction must be exceptionally fast.
+
+### Core principle
+
+A normal sale should require only ONE TAP.
+
+The user should be able to:
+1. See available products.
+2. Tap the product.
+3. Have the sale registered immediately.
+4. Move on to the next customer.
+
+The entire normal sale registration should take less than three seconds.
+
+Do not turn this into a complicated conventional POS checkout system.
+
+The interface should be distraction-free and optimized for continuous selling.
+
+### 2.1 Integration
+
+Add Live Selling to the existing StallIQ navigation.
+
+It must be available on both desktop and mobile layouts without redesigning either.
+
+When the user opens Live Selling, it should display the active project's available inventory.
+
+The system must use existing project data, product prices, purchase costs, quantities, and categories.
+
+Never create separate sample inventory or duplicate financial calculations.
+
+---
+
+# PART 3 — LIVE SELLING INTERFACE
+
+Create a clean, visually polished interface consistent with the existing StallIQ design.
+
+### 3.1 Header
+
+Display:
+- Live Selling.
+- Active project name.
+- Current selling session status.
+- Today's actual revenue.
+- Number of units sold.
+- Pending synchronization indicator when relevant.
+
+Keep the header compact.
+
+Do not overload the screen with analytics while the user is selling.
+
+### 3.2 Product cards
+
+Display available inventory as a visually organized product grid or list, using the layout most appropriate to the existing design.
+
+Every product should display:
+
+- Product name.
+- Selling price.
+- Remaining stock quantity, if a planned quantity exists.
+- Category.
+- Optional product image or existing visual representation.
+- Clear sold-out state when stock reaches zero.
+
+Product cards must be easy to identify and tap.
+
+Avoid unnecessary information that makes cards difficult to scan quickly.
+
+### 3.3 Search and categories
+
+Provide:
+- Instant product search.
+- Category filters.
+- Quick access to recently sold products.
+- Ability to pin favorite or frequently sold products.
+- Clear indication of unavailable or sold-out products.
+
+Search must be responsive and work with large inventories.
+
+Pinned products should appear in a dedicated quick-access area.
+
+### 3.4 Product sorting
+
+Provide useful sorting options:
+- Frequently sold.
+- Recently sold.
+- Product name.
+- Category.
+
+Keep sorting controls secondary to the main selling interface.
+
+---
+
+# PART 4 — ONE-TAP SALE REGISTRATION
+
+This is the most important interaction.
+
+When a user taps an available product:
+
+1. Immediately register one unit as sold at its predetermined selling price.
+2. Record the transaction.
+3. Reduce the available quantity by one, if inventory quantity is tracked.
+4. Update actual revenue.
+5. Update realized gross profit.
+6. Update the sales history.
+7. Show subtle visual and haptic feedback where supported.
+
+There must be:
+- No mandatory checkout screen.
+- No confirmation popup.
+- No mandatory customer information.
+- No mandatory payment selection.
+- No unnecessary intermediate steps.
+
+A normal full-price sale must happen with one tap.
+
+### 4.1 Products without planned quantities
+
+Some existing products may not have a planned quantity.
+
+Do not treat an unspecified quantity as zero.
+
+For such products, allow sales to be recorded while clearly distinguishing unknown or untracked stock from actual zero remaining stock.
+
+### 4.2 Sold-out protection
+
+If a product has a tracked quantity of zero:
+- Clearly mark it sold out.
+- Disable normal sale registration.
+- Prevent accidental negative inventory.
+- Allow stock correction through the appropriate inventory management workflow.
+
+Do not allow sales beyond available stock unless the user deliberately uses an authorized stock override.
+
+---
+
+# PART 5 — QUICK DISCOUNTS AND BARGAINING
+
+The selling price of each product is already defined in StallIQ inventory.
+
+However, during actual stall selling, customers may negotiate.
+
+The Live Selling system must make bargaining discounts extremely fast.
+
+### 5.1 Discount selector
+
+Provide these options:
+
+- Full Price.
+- −₹20.
+- −₹30.
+- −₹40.
+- −₹50.
+- Custom Discount.
+
+These are fixed rupee deductions from the original selling price.
+
+Example:
+
+Original product selling price: ₹500.
+
+| Selection | Final selling price |
+|---|---:|
+| Full Price | ₹500 |
+| −₹20 | ₹480 |
+| −₹30 | ₹470 |
+| −₹40 | ₹460 |
+| −₹50 | ₹450 |
+
+### 5.2 Discount interaction
+
+Normal full-price sale:
+- One tap registers the sale immediately.
+
+Discounted sale:
+- Tapping the product opens a compact discount selector.
+- Selecting the desired discount immediately registers the sale.
+- No additional confirmation screen.
+- Keep the process as close to two taps as possible.
+
+Custom discount:
+- Allow entering any fixed rupee amount.
+- Use a compact numeric input.
+- Do not require an unnecessarily complicated form.
+
+### 5.3 Discount validation
+
+- Never allow a discount that makes the final selling price zero or negative.
+- Clearly display the final selling price.
+- Record original selling price and actual selling price separately.
+- Record the exact discount amount.
+- Calculate realized profit using the actual discounted price.
+- Preserve the original inventory selling price.
+- Never permanently change the product's default selling price just because a customer negotiated a discount.
+
+### 5.4 Quantity and discounts
+
+When a customer purchases multiple units:
+- Allow applying the same per-unit discount to all units.
+- Calculate the correct total discount.
+- Record the quantity and actual unit selling price.
+- Ensure the discount cannot accidentally be applied twice.
+
+Example:
+
+Three units at ₹500 each, with a ₹30 discount per unit.
+
+Original total: ₹1,500.
+
+Total discount: ₹90.
+
+Actual revenue: ₹1,410.
+
+Realized profit must be calculated using the actual selling amount minus the cost of all three units.
+
+---
+
+# PART 6 — MULTIPLE QUANTITY SALES
+
+A customer may purchase more than one piece of the same product.
+
+Provide a fast quantity adjustment.
+
+Requirements:
+- Default quantity is one.
+- Simple plus/minus quantity controls.
+- Quick quantity selection.
+- Correct inventory deduction.
+- Correct revenue and profit calculations.
+- Quantity cannot exceed tracked available stock.
+- No need to open a full checkout page.
+
+Keep the one-tap single-unit sale as the default interaction.
+
+### 6.1 Multiple products in one purchase
+
+Add an optional quick basket for situations where one customer purchases multiple different products.
+
+However:
+- It must remain optional.
+- Single-product sales must never require a basket.
+- Allow adding multiple products quickly.
+- Allow quantity changes.
+- Allow individual product discounts.
+- Show the final total.
+- Register the entire basket as one transaction when completed.
+
+Do not make the basket the default selling workflow.
+
+---
+
+# PART 7 — INSTANT UNDO AND CORRECTIONS
+
+Mistakes can happen when selling quickly.
+
+Implement a reliable undo system.
+
+### 7.1 Instant undo
+
+After registering a sale, display a small temporary message:
+
+"Sale recorded · Undo"
+
+Keep it visible for approximately 5–8 seconds.
+
+If the user taps Undo:
+- Reverse the transaction.
+- Restore the tracked inventory quantity.
+- Reverse its revenue and profit contributions.
+- Update the sales history.
+- Record the reversal for audit purposes.
+
+Undo must not create duplicate transactions.
+
+### 7.2 Corrections after the undo window
+
+Allow the user to open sales history and correct or cancel an earlier sale.
+
+Requirements:
+- Never silently delete financial records.
+- Record the original transaction.
+- Record the correction or cancellation.
+- Recalculate inventory and financial figures correctly.
+- Preserve an audit trail.
+
+If a transaction has already synchronized, use a proper reversal or correction transaction rather than simply deleting the original server record.
+
+---
+
+# PART 8 — PAYMENT METHOD TRACKING
+
+Allow the user to optionally record how a customer paid.
+
+Payment methods:
+- Cash.
+- UPI.
+- Card.
+- Other.
+- Not recorded.
+
+This feature must not slow down normal selling.
+
+Requirements:
+- Full-price one-tap sales must remain possible.
+- Payment selection should be optional.
+- Allow a quick payment selection through a compact control.
+- Allow a default payment method to be selected for the current session.
+- Allow changing the method when necessary.
+- Support payment method selection for basket transactions.
+
+At the end of the day, show the payment breakdown.
+
+Do not falsely assume that every sale was paid through Cash or UPI when no payment method was selected.
+
+---
+
+# PART 9 — SALES HISTORY
+
+Create a dedicated sales history view within Live Selling.
+
+Display:
+- Product name.
+- Quantity.
+- Original unit selling price.
+- Discount amount.
+- Actual unit selling price.
+- Total amount.
+- Payment method, if recorded.
+- Time of sale.
+- Transaction status.
+- Synchronization status where relevant.
+
+Requirements:
+- Most recent transactions appear first.
+- Provide search and filtering.
+- Filter by product, category, payment method, and time.
+- Allow opening transaction details.
+- Allow correcting or cancelling transactions.
+- Show reversed or cancelled transactions clearly.
+- Do not include cancelled transactions in actual revenue.
+
+Keep the sales history easy to understand.
+
+---
+
+# PART 10 — LIVE SALES ANALYTICS
+
+The user should be able to understand how the stall is performing while selling.
+
+Display a compact live summary.
+
+### Important live metrics
+
+1. Actual revenue.
+2. Units sold.
+3. Number of transactions.
+4. Total discounts given.
+5. Realized gross profit.
+
+These figures must update immediately after every sale and correction.
+
+Do not mix expected revenue with actual sales revenue.
+
+### Product performance
+
+Show:
+- Best-selling products.
+- Most frequently sold categories.
+- Units sold per product.
+- Revenue per product.
+- Discount given per product.
+- Realized gross profit per product.
+
+### Category performance
+
+Show:
+- Units sold by category.
+- Revenue by category.
+- Profit contribution by category.
+
+Use clear, attractive visualizations rather than overwhelming the user with tables.
+
+---
+
+# PART 11 — END-OF-DAY REPORT AND SESSION CLOSING
+
+This is a critical feature.
+
+At the end of a selling day, the user should be able to understand exactly what happened at the stall.
+
+Create a dedicated Daily Report.
+
+### 11.1 Daily report metrics
+
+Display:
+
+| Metric | Calculation |
+|---|---|
+| Total units sold | Total non-cancelled units |
+| Number of transactions | Total valid sales transactions |
+| Original sales value | Value before discounts |
+| Total discounts | Total discount amount |
+| Actual revenue | Original sales value minus discounts |
+| Cost of goods sold | Purchase cost of all sold units |
+| Realized gross profit | Actual revenue minus cost of goods sold |
+| Average transaction value | Actual revenue divided by valid transactions |
+| Average discount | Total discounts divided by valid units |
+| Remaining stock | Available tracked inventory |
+
+Clearly distinguish revenue, gross profit, and other financial figures.
+
+Do not describe gross profit as net profit because operating expenses, rent, labour, transport, and other costs may not have been deducted.
+
+### 11.2 Payment breakdown
+
+Show:
+- Cash sales.
+- UPI sales.
+- Card sales.
+- Other payments.
+- Unrecorded payment totals.
+
+### 11.3 Product report
+
+Show:
+- Products sold.
+- Quantity sold per product.
+- Revenue per product.
+- Total discount per product.
+- Cost of goods sold.
+- Realized gross profit.
+
+### 11.4 Category report
+
+Show the same useful sales information grouped by category.
+
+### 11.5 Daily closing
+
+Provide a clear "Close Day" action.
+
+Before closing:
+- Ensure all locally saved transactions are retained.
+- Show pending synchronization if any.
+- Do not silently discard unsynchronized sales.
+- Allow the user to close the local selling session even if offline, while marking synchronization as pending.
+
+Closing a day must:
+- Save the daily report.
+- Preserve every transaction.
+- Finalize the session.
+- Prevent accidental modification of the closed session.
+- Allow authorized corrections later through the audit trail.
+- Prepare a new session for the next selling day.
+
+Never delete or reset sales history after closing.
+
+### 11.6 Historical reports
+
+Allow the user to view previous daily reports and compare different selling days.
+
+Use the existing project's reporting and analytics infrastructure wherever possible.
+
+---
+
+# PART 12 — STOCK AND INVENTORY CONSISTENCY
+
+Live Selling must remain connected to StallIQ inventory.
+
+When a sale occurs:
+- Decrease tracked available quantity.
+- Update sold quantities.
+- Update remaining quantities.
+- Update actual revenue and profit.
+- Reflect changes in the regular inventory section.
+- Reflect changes in project overview and relevant analytics.
+
+When a sale is cancelled or reversed:
+- Restore inventory correctly.
+- Reverse its financial contribution.
+
+Never update only the Live Selling interface while leaving the actual project inventory unchanged.
+
+### Important data distinction
+
+Keep these separate:
+- Planned quantity.
+- Purchased quantity, if tracked.
+- Available quantity.
+- Quantity sold.
+- Unknown/untracked quantity.
+
+Do not assume planned quantity is automatically purchased stock.
+
+Use the application's existing inventory definitions and calculations wherever possible.
+
+---
+
+# PART 13 — RELIABLE TRANSACTION DATA MODEL
+
+Inspect the existing database architecture and extend it without breaking existing data.
+
+Implement a proper sales transaction model.
+
+Each transaction should contain the relevant fields:
+
+- Unique transaction ID.
+- User ID.
+- Project ID.
+- Selling session ID.
+- Product ID.
+- Product name snapshot.
+- Category snapshot.
+- Quantity.
+- Original unit selling price.
+- Actual unit selling price.
+- Per-unit discount.
+- Total discount.
+- Original total value.
+- Actual total revenue.
+- Purchase cost per unit snapshot.
+- Total cost of goods sold.
+- Realized gross profit.
+- Payment method.
+- Transaction timestamp.
+- Transaction status.
+- Synchronization status.
+- Reversal or correction reference, if applicable.
+
+Preserve historical product information.
+
+For example, changing a product's name or price tomorrow must not change the details of a sale made yesterday.
+
+Use stable IDs and timestamps.
+
+### Financial calculation rules
+
+For each transaction:
+
+Original total value = Original unit selling price × Quantity.
+
+Total discount = Per-unit discount × Quantity.
+
+Actual revenue = Original total value − Total discount.
+
+Cost of goods sold = Purchase cost per unit × Quantity.
+
+Realized gross profit = Actual revenue − Cost of goods sold.
+
+For a basket, calculate these figures for each line item and then aggregate them.
+
+Use a consistent currency precision and rounding strategy.
+
+Never use floating-point calculations carelessly for financial amounts. Use integer minor units or an appropriate decimal representation.
+
+---
+
+# PART 14 — MULTI-DEVICE AND DATA SAFETY
+
+StallIQ may be used on multiple devices.
+
+Implement reliable handling of simultaneous sales.
+
+Requirements:
+- Use atomic database operations or transactions for tracked stock changes.
+- Prevent overselling.
+- Use unique transaction IDs.
+- Prevent duplicate synchronization.
+- Handle network failures.
+- Handle retry attempts.
+- Handle concurrent changes.
+- Ensure user and project ownership is validated.
+- Prevent one user's sales from appearing in another user's project.
+
+Offline sales should not disappear if another device changes inventory while the first device is offline.
+
+If an offline transaction conflicts with current stock:
+- Preserve the recorded transaction.
+- Flag the stock conflict.
+- Provide a clear resolution workflow.
+- Never silently delete or rewrite the sale.
+
+Use the existing authentication, database, security rules, and project isolation architecture.
+
+Do not introduce a second database or a disconnected storage system.
+
+---
+
+# PART 15 — VISUAL QUALITY AND INTERACTION DESIGN
+
+The Live Selling section must feel like a polished commercial product.
+
+Preserve StallIQ's existing visual identity.
+
+Design requirements:
+- Clear visual hierarchy.
+- Extremely fast product identification.
+- Comfortable tap targets.
+- Smooth transitions.
+- Subtle success feedback.
+- Minimal loading indicators.
+- Beautiful empty states.
+- Clear sold-out states.
+- Elegant discount selector.
+- Responsive layout.
+- Consistent typography.
+- High contrast and readable prices.
+- No unnecessary confirmation dialogs.
+
+### Interaction priorities
+
+1. Full-price sale: one tap.
+2. Fixed discount sale: product tap + discount tap.
+3. Quantity sale: minimal additional interaction.
+4. Undo: one tap.
+5. Search: immediate results.
+6. End-of-day report: easy to access.
+
+Use haptic feedback only where supported and appropriate.
+
+Do not make animations block input.
+
+Do not delay transaction persistence for the sake of visual animation.
+
+The interface should remain responsive even during rapid consecutive sales.
+
+### Screen Wake Lock
+
+Where supported, use the Screen Wake Lock API during an active Live Selling session to help prevent the display from sleeping.
+
+Release it when the session ends or the user leaves Live Selling, subject to browser support and lifecycle handling.
+
+Do not make this feature a requirement for the application to function.
+
+---
+
+# PART 16 — TESTING AND PRODUCTION VERIFICATION
+
+Do not stop after creating the interface.
+
+Test the complete system using real application logic and actual persistence.
+
+### 16.1 Sale registration tests
+
+Test:
+- One-tap full-price sale.
+- ₹20 discount.
+- ₹30 discount.
+- ₹40 discount.
+- ₹50 discount.
+- Custom discount.
+- Invalid discount.
+- Multiple units.
+- Multiple different products in one basket.
+- Product with no tracked quantity.
+- Product with one remaining unit.
+- Sold-out product.
+- Rapid consecutive sales.
+- Accidental duplicate taps.
+
+### 16.2 Financial accuracy tests
+
+Verify:
+- Original total value.
+- Total discount.
+- Actual revenue.
+- Cost of goods sold.
+- Realized gross profit.
+- Payment breakdown.
+- Product-level totals.
+- Category-level totals.
+- Daily report totals.
+
+Ensure cancelled transactions are excluded from actual revenue and valid unit totals.
+
+### 16.3 Undo and correction tests
+
+Test:
+- Immediate undo.
+- Undo after a discounted sale.
+- Undo after a multiple-unit sale.
+- Cancellation after synchronization.
+- Correction of an earlier transaction.
+- Correct restoration of tracked stock.
+- No duplicate reversals.
+
+### 16.4 Offline tests
+
+Test:
+1. Open StallIQ while online.
+2. Start a selling session.
+3. Disconnect internet.
+4. Register multiple sales.
+5. Close and reopen the application.
+6. Verify that the sales remain saved.
+7. Reconnect internet.
+8. Verify that all sales synchronize.
+9. Verify that no transaction is duplicated.
+10. Verify that stock and analytics are correct.
+
+### 16.5 Data consistency tests
+
+Verify that:
+- Live Selling updates regular inventory.
+- Inventory updates appear in Live Selling.
+- Daily reports match transaction history.
+- Project analytics reflect actual sales.
+- Multiple devices do not oversell tracked stock.
+- Project isolation is maintained.
+- Historical sales do not change when product details are edited later.
+
+### 16.6 PWA tests
+
+Verify:
+- Manifest validity.
+- Service worker registration.
+- Installation eligibility.
+- Standalone launch.
+- Offline application shell.
+- Local transaction persistence.
+- Update handling.
+- Reconnection and synchronization.
+
+### 16.7 Existing functionality regression tests
+
+Retest the existing StallIQ application.
+
+Do not break:
+- Authentication.
+- Project creation.
+- Project switching.
+- Product creation and editing.
+- Category management.
+- Stock planning.
+- Supplier orders.
+- Stock combinations.
+- Stall Setup.
+- Market Research.
+- AI Coach.
+- Existing financial calculations.
+- Existing analytics.
+- Existing database synchronization.
+
+Keep all existing working features operational.
+
+---
+
+# PART 17 — IMPLEMENTATION RULES
+
+Follow these rules throughout development.
+
+1. Inspect before modifying.
+2. Reuse existing architecture and utilities.
+3. Extend existing data models carefully.
+4. Preserve existing user data.
+5. Never introduce hardcoded demo inventory or fake sales.
+6. Never replace actual calculations with static numbers.
+7. Never build buttons that look functional but do nothing.
+8. Never create disconnected mock interfaces.
+9. Do not duplicate existing financial calculation logic.
+10. Keep transaction handling reliable and auditable.
+11. Preserve the current desktop UI.
+12. Do not create a separate mobile interface.
+13. Keep the PWA and Live Selling integrated into the same application.
+14. Use proper loading, error, empty, and success states.
+15. Maintain a clean, maintainable codebase.
+
+If database schema changes or security rule changes are needed, implement them consistently with the existing architecture and clearly document any manual deployment steps.
+
+Do not claim that a production feature has been verified merely because local tests passed.
+
+---
+
+# FINAL ACCEPTANCE CRITERIA
+
+The implementation is complete only when all of the following are true:
+
+- StallIQ is installable as a PWA on supported devices.
+- The existing desktop design and functionality remain intact.
+- Live Selling uses the real active project's inventory.
+- A full-price sale registers with one tap.
+- Fixed discounts of ₹20, ₹30, ₹40 and ₹50 work correctly.
+- Custom discounts work correctly.
+- Quantity sales work correctly.
+- Optional multi-product baskets work correctly.
+- Stock updates accurately.
+- Instant undo works.
+- Sales history is persistent and auditable.
+- Payment methods can be recorded.
+- Daily reports calculate correctly.
+- Offline sales are retained and synchronize without duplication.
+- Multi-device conflicts are handled safely.
+- The interface remains fast and visually polished.
+- Existing StallIQ features continue working.
+
+**The most important product principle: Live Selling must be so simple that a person can use it while talking to a customer, take payment, register the sale, and immediately serve the next customer without losing their rhythm.**
+
+Prioritize speed, accuracy, reliability, and visual refinement equally.
+
+Implement the complete system in the existing StallIQ codebase. Do not return only a plan or a mockup. At the end, provide a concise implementation report listing what changed, what tests passed, what remains unverified, and any manual production deployment steps.

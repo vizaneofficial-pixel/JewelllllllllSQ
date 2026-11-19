@@ -1,0 +1,389 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated merchant profile and retail business preferences.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Firebase Authentication user UID matching the document ID."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 254,
+          "description": "Verified merchant email address from Google Sign-In."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Merchant display name."
+        },
+        "preferredName": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Preferred name used by AI Coach and personalized greetings."
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "Profile avatar URL."
+        },
+        "businessName": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Merchant brand, boutique, or stall name."
+        },
+        "preferredScale": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Default sale scale preference (e.g., Exhibition Stall, Mini Pop-Up, Mega Expo)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-updated timestamp."
+        }
+      },
+      "required": [
+        "uid",
+        "email",
+        "displayName",
+        "photoURL",
+        "businessName",
+        "preferredScale",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StallWorkspace": {
+      "title": "StallWorkspace",
+      "description": "Saved planner configuration, item categories, rules, and inventory ledger for a user account.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Owner Firebase Auth UID."
+        },
+        "eventName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Name of the stall event or market."
+        },
+        "expectedFootfall": {
+          "type": "number",
+          "description": "Expected crowd footfall count."
+        },
+        "budgetCap": {
+          "type": "number",
+          "description": "Wholesale purchase budget cap in INR."
+        },
+        "minProfitFloor": {
+          "type": "number",
+          "description": "Minimum net profit floor target in INR."
+        },
+        "stallFee": {
+          "type": "number",
+          "description": "Event stall rent or exhibition fee in INR."
+        },
+        "maxPerCategory": {
+          "type": "number",
+          "description": "Maximum units per category under even spread."
+        },
+        "minColoursRule": {
+          "type": "number",
+          "description": "Minimum distinct categories required."
+        },
+        "globalSellThrough": {
+          "type": "number",
+          "description": "Global expected sell-through percentage."
+        },
+        "activeTab": {
+          "type": "string",
+          "enum": ["overview", "sell", "optimizer", "strategies", "research", "calculator"],
+          "description": "Last active workspace tab."
+        },
+        "eventLocation": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Optional city or venue location for the event."
+        },
+        "eventDate": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Optional event date string."
+        },
+        "stallSetup": {
+          "type": "object",
+          "description": "Stall dimensions, stall type, and layout notes."
+        },
+        "marketResearch": {
+          "type": "array",
+          "description": "Saved market research notes and grounded sources (0-12 records)."
+        },
+        "rules": {
+          "type": "object",
+          "description": "Optimizer rule toggles."
+        },
+        "categories": {
+          "type": "array",
+          "description": "Bounded list of product items in active category (0-25 items)."
+        },
+        "stallStock": {
+          "type": "array",
+          "description": "Bounded list of stall stock and event cost rows (0-60 items)."
+        },
+        "selectedComboId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Selected combo identifier or null."
+        },
+        "customQuantities": {
+          "type": "array",
+          "description": "Custom manually adjusted quantities or null."
+        },
+        "categoryGroups": {
+          "type": "array",
+          "description": "Diversified multi-category planner groups with per-category budgets, items, rules, and selected mixes (0-20 items)."
+        },
+        "activeGroupId": {
+          "type": "string",
+          "minLength": 0,
+          "maxLength": 128,
+          "description": "Currently active category group identifier (empty string when project has no categories yet)."
+        },
+        "projectMeta": {
+          "type": "object",
+          "description": "Project metadata (id, name, type, description, status, timestamps)."
+        },
+        "savedPlans": {
+          "type": "array",
+          "description": "Saved stock plan snapshots (0-15 items)."
+        },
+        "purchaseProgress": {
+          "type": "object",
+          "description": "Per-product supplier order and delivery progress map."
+        },
+        "actualSales": {
+          "type": "array",
+          "description": "Optional actual sales records logged during/after event (0-200 items)."
+        },
+        "conversations": {
+          "type": "array",
+          "description": "Persisted AI Coach conversations scoped to this project (0-12 conversations)."
+        },
+        "activeConversationId": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Currently active AI Coach conversation ID or null."
+        },
+        "orderPreparedAtMs": {
+          "type": "number",
+          "description": "Timestamp when supplier purchase order was prepared/copied or null."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-updated timestamp."
+        }
+      },
+      "required": [
+        "ownerId",
+        "eventName",
+        "expectedFootfall",
+        "budgetCap",
+        "minProfitFloor",
+        "stallFee",
+        "maxPerCategory",
+        "minColoursRule",
+        "globalSellThrough",
+        "activeTab",
+        "rules",
+        "categories",
+        "stallStock",
+        "selectedComboId",
+        "customQuantities",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AiMemoryEntry": {
+      "title": "AiMemoryEntry",
+      "description": "Account-scoped AI memory fact remembered across voice and text sessions.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "description": "Owner Firebase Auth UID."
+        },
+        "fact": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 500,
+          "description": "Concise remembered preference, inventory insight, pricing rule, or event context."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["inventory", "pricing", "event", "preference", "strategy"],
+          "description": "Memory classification tag."
+        },
+        "source": {
+          "type": "string",
+          "enum": ["voice", "command", "manual"],
+          "description": "How this memory entry was captured."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-updated timestamp."
+        }
+      },
+      "required": ["ownerId", "fact", "category", "source", "createdAt", "updatedAt"]
+    },
+    "LiveSaleTransaction": {
+      "title": "LiveSaleTransaction",
+      "description": "Immutable/audit-logged Live Selling sale, reversal, or correction transaction scoped to a user and workspace.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "projectId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "sessionId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "isBasket": { "type": "boolean" },
+        "items": { "type": "array" },
+        "primaryProductId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "primaryProductName": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "primaryCategoryName": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "totalQuantity": { "type": "number" },
+        "originalTotalValue": { "type": "number" },
+        "totalDiscount": { "type": "number" },
+        "actualTotalRevenue": { "type": "number" },
+        "totalCogs": { "type": "number" },
+        "realizedGrossProfit": { "type": "number" },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["cash", "upi", "card", "other", "unrecorded"]
+        },
+        "timestampMs": { "type": "number" },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "reversed", "corrected"]
+        },
+        "stockConflict": { "type": "boolean" },
+        "stockConflictNote": { "type": "string", "maxLength": 240 },
+        "stockConflictResolved": { "type": "boolean" },
+        "reversalOfTransactionId": { "type": "string", "maxLength": 128 },
+        "reversedByTransactionId": { "type": "string", "maxLength": 128 },
+        "correctionOfTransactionId": { "type": "string", "maxLength": 128 },
+        "correctedByTransactionId": { "type": "string", "maxLength": 128 },
+        "note": { "type": "string", "maxLength": 240 },
+        "deviceId": { "type": "string", "maxLength": 64 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "userId",
+        "projectId",
+        "sessionId",
+        "isBasket",
+        "items",
+        "primaryProductId",
+        "primaryProductName",
+        "primaryCategoryName",
+        "totalQuantity",
+        "originalTotalValue",
+        "totalDiscount",
+        "actualTotalRevenue",
+        "totalCogs",
+        "realizedGrossProfit",
+        "paymentMethod",
+        "timestampMs",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "LiveSellingSession": {
+      "title": "LiveSellingSession",
+      "description": "Daily Live Selling session state and End-of-Day report snapshot.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "projectId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "dateKey": { "type": "string", "minLength": 1, "maxLength": 20 },
+        "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "status": { "type": "string", "enum": ["open", "closed"] },
+        "startedAtMs": { "type": "number" },
+        "closedAtMs": { "type": "number" },
+        "defaultPaymentMethod": {
+          "type": "string",
+          "enum": ["cash", "upi", "card", "other", "unrecorded"]
+        },
+        "pendingSyncOnClose": { "type": "boolean" },
+        "closedReportSnapshot": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "userId",
+        "projectId",
+        "dateKey",
+        "label",
+        "status",
+        "startedAtMs",
+        "defaultPaymentMethod",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private merchant account profile and business preferences, accessible strictly to the owning verified user."
+    },
+    "/users/{userId}/workspaces/{workspaceId}": {
+      "schema": { "$ref": "#/entities/StallWorkspace" },
+      "description": "Saved retail stall planner snapshots owned by the authenticated user."
+    },
+    "/users/{userId}/workspaces/{workspaceId}/liveTransactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/LiveSaleTransaction" },
+      "description": "Audit-preserved Live Selling transactions for the authenticated owner's workspace."
+    },
+    "/users/{userId}/workspaces/{workspaceId}/liveSessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/LiveSellingSession" },
+      "description": "Daily Live Selling sessions and closed End-of-Day snapshots."
+    },
+    "/users/{userId}/aiMemories/{memoryId}": {
+      "schema": { "$ref": "#/entities/AiMemoryEntry" },
+      "description": "Account-specific AI memory facts and retail context persisted for the authenticated user."
+    }
+  }
+}
